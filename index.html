@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>چقدر افشین رو میشناسی؟</title>
+  <style>
+    /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    /* ویدیوی پس‌زمینه اولیه */
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+    /* استایل بدنه */
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+      background: #000;
+    }
+    /* صفحه شروع */
+    #start-screen {
+      text-align: center;
+      z-index: 10;
+    }
+    #start-screen button {
+      padding: 15px 30px;
+      font-size: 24px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background-color: #ff4081;
+      color: white;
+    }
+    /* کارت سوال */
+    #question-card {
+      display: none;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      text-align: center;
+      z-index: 10;
+    }
+    #question-card h2 {
+      margin-bottom: 10px;
+    }
+    #question-card p.question-text {
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+    .option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .option:hover {
+      background-color: #f9f9f9;
+    }
+    .option .option-text {
+      flex: 1;
+      text-align: right;
+      font-size: 18px;
+    }
+    .option .checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .option.selected .checkbox {
+      background-color: #4CAF50;
+      border-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+    }
+    #next-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    #next-button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    /* انیمیشن شمارش معکوس */
+    #animation-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      justify-content: center;
+      align-items: center;
+      font-size: 100px;
+      color: red;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: 20;
+    }
+    /* بکگراند نهایی */
+    #final-bg {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('final-bg.png') no-repeat center center;
+      background-size: cover;
+      z-index: -2;
+    }
+    /* کارت نهایی با شفافیت بیشتر */
+    #final-card {
+      display: none;
+      position: fixed;
+      top: 60%;  /* کارت نهایی کمی پایین‌تر قرار می‌گیرد تا ویدیو گربه در بالا قرار گیرد */
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.7);
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 30;
+      width: 90%;
+      max-width: 600px;
+    }
+    #final-card h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    #final-card p {
+      font-size: 24px;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    /* استایل برای ویدیوی رقص گربه */
+    #cat-video {
+      display: none;
+      position: fixed;
+      top: 10%;  /* در بالای صفحه */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px; /* اندازه دلخواه */
+      z-index: 31;
+    }
+    /* استایل برای پوپرها (از تگ video استفاده می‌کنیم) */
+    .popper {
+      position: fixed;
+      width: 50px;
+      height: 50px;
+      z-index: 40;
+      transition: left 2s linear, top 2s linear, opacity 2s linear;
+    }
+  </style>
+</head>
+<body>
+  <!-- ویدیوی پس‌زمینه اولیه -->
+  <video autoplay loop muted playsinline id="bg-video">
+    <source src="background-video.mp4" type="video/mp4">
+    مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+  </video>
+  
+  <!-- عناصر صوتی -->
+  <audio id="pre-sound" src="pre-result.mp3"></audio>
+  <audio id="post-sound" src="post-result.mp3"></audio>
+  
+  <!-- صفحه شروع -->
+  <div id="start-screen">
+    <button id="start-btn">چقدر افشین رو میشناسی؟🧐</button>
+  </div>
+  
+  <!-- کارت سوال -->
+  <div id="question-card">
+    <h2 id="question-number">سوال 1 از 3</h2>
+    <p class="question-text" id="question-text">سوال placeholder</p>
+    <div id="options-container">
+      <!-- گزینه‌ها اینجا درج می‌شوند -->
+    </div>
+    <button id="next-button" disabled>سوال بعدی</button>
+  </div>
+  
+  <!-- انیمیشن شمارش معکوس -->
+  <div id="animation-container"></div>
+  
+  <!-- بکگراند نهایی -->
+  <div id="final-bg"></div>
+  
+  <!-- ویدیوی رقص گربه (بالا تر از کارت نهایی) -->
+  <video autoplay loop muted playsinline id="cat-video">
+    <source src="cat-dance.webm" type="video/webm">
+    مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+  </video>
+  
+  <!-- کارت نهایی -->
+  <div id="final-card">
+    <h1>یسنای عزیز💖</h1>
+    <p>تولدت مبارک عزیزمم! امیدوارم این روز برات پر از شادی، عشق و لحظات خاص باشد. از ته دل آرزو دارم که همیشه لبخند روی لبت باشههه و به تمام رویاهایت برسییی🥰😘</p>
+    <p>با بهترین آرزوها</p>
+  </div>
+  
+  <script>
+    // آرایه سوالات
+    const questions = [
+      {
+        question: "افشین به کدوم انیمه بیشتر علاقه داره😊؟",
+        options: ["جوجوتسو", "دفترچه مرگ", "اتک ان تایتان", "ناروتو"]
+      },
+      {
+        question: "افشین به چه رنگی علاقه داره؟",
+        options: ["سبز", "قرمز", "آبی", "سفید"]
+      },
+      {
+        question: "غذای مورد علاقه افشین چیه؟😁",
+        options: ["پیتزا", "کباب", "قورمه سبزی", "پاستا"]
+      }
+    ];
+    
+    let currentQuestionIndex = 0;
+    const selectedAnswers = [];
+    
+    const startScreen = document.getElementById('start-screen');
+    const startBtn = document.getElementById('start-btn');
+    const questionCard = document.getElementById('question-card');
+    const questionNumber = document.getElementById('question-number');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const nextButton = document.getElementById('next-button');
+    const animationContainer = document.getElementById('animation-container');
+    const bgVideo = document.getElementById('bg-video');
+    const preSound = document.getElementById('pre-sound');
+    const postSound = document.getElementById('post-sound');
+    const finalBg = document.getElementById('final-bg');
+    const finalCard = document.getElementById('final-card');
+    const catVideo = document.getElementById('cat-video');
+    
+    startBtn.addEventListener('click', () => {
+      startScreen.style.display = 'none';
+      questionCard.style.display = 'block';
+      renderQuestion();
+    });
+    
+    function renderQuestion() {
+      optionsContainer.innerHTML = '';
+      nextButton.disabled = true;
+      
+      questionNumber.textContent = `سوال ${currentQuestionIndex + 1} از ${questions.length}`;
+      questionText.textContent = questions[currentQuestionIndex].question;
+      
+      questions[currentQuestionIndex].options.forEach(optionText => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'option';
+        optionDiv.setAttribute('data-option', optionText);
+        
+        const spanText = document.createElement('span');
+        spanText.className = 'option-text';
+        spanText.textContent = optionText;
+        
+        const checkboxSpan = document.createElement('span');
+        checkboxSpan.className = 'checkbox';
+        
+        optionDiv.appendChild(spanText);
+        optionDiv.appendChild(checkboxSpan);
+        
+        optionDiv.addEventListener('click', () => {
+          document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+          optionDiv.classList.add('selected');
+          selectedAnswers[currentQuestionIndex] = optionText;
+          nextButton.disabled = false;
+        });
+        
+        optionsContainer.appendChild(optionDiv);
+      });
+      
+      if (currentQuestionIndex === questions.length - 1) {
+        nextButton.textContent = "دیدن نتایج";
+      } else {
+        nextButton.textContent = "سوال بعدی";
+      }
+    }
+    
+    nextButton.addEventListener('click', () => {
+      if (!selectedAnswers[currentQuestionIndex]) return;
+      
+      if (currentQuestionIndex === questions.length - 1) {
+        showAnimatedResults();
+      } else {
+        currentQuestionIndex++;
+        renderQuestion();
+      }
+    });
+    
+    function showAnimatedResults() {
+      questionCard.style.display = 'none';
+      bgVideo.style.display = 'none'; // حذف ویدیوی پس‌زمینه اولیه
+      preSound.play();              // پخش صدای قبل از نتایج
+      animationContainer.style.display = 'flex';
+      animateResults();
+    }
+    
+    function animateResults() {
+      const texts = ["3", "2", "1"];
+      let index = 0;
+      
+      function showNext() {
+        if (index < texts.length) {
+          animationContainer.innerText = texts[index];
+          animationContainer.style.opacity = '1';
+          setTimeout(() => {
+            animationContainer.style.opacity = '0';
+            setTimeout(() => {
+              index++;
+              showNext();
+            }, 500);
+          }, 700);
+        } else {
+          setTimeout(showFinalResults, 500);
+        }
+      }
+      showNext();
+    }
+    
+    function showFinalResults() {
+      postSound.play();
+      animationContainer.style.display = 'none';
+      finalBg.style.display = 'block';
+      finalCard.style.display = 'block';
+      // نمایش ویدیوی رقص گربه
+      catVideo.style.display = 'block';
+      animatePoppers();
+    }
+    
+    // تابع برای پرتاب پوپرها از 4 گوشه به سمت وسط (5 پوپر از هر گوشه)
+    function animatePoppers() {
+      const corners = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'];
+      const numPerCorner = 5;
+      const popperWidth = 500, popperHeight = 500;
+      const finalLeft = window.innerWidth / 2 - popperWidth / 2;
+      const finalTop = window.innerHeight / 2 - popperHeight / 2;
+      
+      corners.forEach(corner => {
+        for (let i = 0; i < numPerCorner; i++) {
+          setTimeout(() => {
+            let popper = document.createElement('video');
+            popper.src = 'popper.webm';
+            popper.autoplay = true;
+            popper.muted = true;
+            popper.playsInline = true;
+            popper.loop = false;
+            popper.style.width = popperWidth + 'px';
+            popper.style.height = popperHeight + 'px';
+            popper.style.position = 'fixed';
+            popper.style.zIndex = '40';
+            popper.style.transition = 'left 2s linear, top 2s linear, opacity 2s linear';
+            let initialLeft, initialTop;
+            if (corner === 'topLeft') {
+              initialLeft = 0 + Math.random() * 20;
+              initialTop = 0 + Math.random() * 20;
+            } else if (corner === 'topRight') {
+              initialLeft = window.innerWidth - popperWidth - Math.random() * 20;
+              initialTop = 0 + Math.random() * 20;
+            } else if (corner === 'bottomLeft') {
+              initialLeft = 0 + Math.random() * 20;
+              initialTop = window.innerHeight - popperHeight - Math.random() * 20;
+            } else if (corner === 'bottomRight') {
+              initialLeft = window.innerWidth - popperWidth - Math.random() * 20;
+              initialTop = window.innerHeight - popperHeight - Math.random() * 20;
+            }
+            popper.style.left = initialLeft + 'px';
+            popper.style.top = initialTop + 'px';
+            popper.style.opacity = '1';
+            document.body.appendChild(popper);
+            popper.offsetHeight;
+            popper.style.left = finalLeft + 'px';
+            popper.style.top = finalTop + 'px';
+            popper.style.opacity = '0';
+            setTimeout(() => { popper.remove(); }, 2000);
+          }, i * 300);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -21,6 +21,18 @@
       object-fit: cover;
       z-index: -1;
     }
+    /* ویدیوی بکگراند نهایی */
+    #final-bg-video {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1; /* به جای -2 */
+    }
+    
     /* استایل بدنه */
     body {
       font-family: Arial, sans-serif;
@@ -130,18 +142,6 @@
       transition: opacity 0.5s ease;
       z-index: 20;
     }
-    /* بکگراند نهایی */
-    #final-bg {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('final-bg.png') no-repeat center center;
-      background-size: cover;
-      z-index: -2;
-    }
     /* کارت نهایی با شفافیت بیشتر */
     #final-card {
       display: none;
@@ -215,8 +215,11 @@
   <!-- انیمیشن شمارش معکوس -->
   <div id="animation-container"></div>
   
-  <!-- بکگراند نهایی -->
-  <div id="final-bg"></div>
+  <!-- ویدیوی بکگراند نهایی -->
+  <video autoplay loop muted playsinline id="final-bg-video">
+    <source src="final-bg.mp4" type="video/mp4">
+    مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+  </video>
   
   <!-- ویدیوی رقص گربه (بالا تر از کارت نهایی) -->
   <video autoplay loop muted playsinline id="cat-video">
@@ -226,7 +229,7 @@
   
   <!-- کارت نهایی -->
   <div id="final-card">
-    <h1>یسنای عزیز💖</h1>
+    <h1>ممد کیری عزیز💖</h1>
     <p>تولدت مبارک عزیزمم! امیدوارم این روز برات پر از شادی، عشق و لحظات خاص باشد. از ته دل آرزو دارم که همیشه لبخند روی لبت باشههه و به تمام رویاهایت برسییی🥰😘</p>
     <p>با بهترین آرزوها</p>
   </div>
@@ -262,7 +265,7 @@
     const bgVideo = document.getElementById('bg-video');
     const preSound = document.getElementById('pre-sound');
     const postSound = document.getElementById('post-sound');
-    const finalBg = document.getElementById('final-bg');
+    const finalBgVideo = document.getElementById('final-bg-video');
     const finalCard = document.getElementById('final-card');
     const catVideo = document.getElementById('cat-video');
     
@@ -355,7 +358,7 @@
     function showFinalResults() {
       postSound.play();
       animationContainer.style.display = 'none';
-      finalBg.style.display = 'block';
+      finalBgVideo.style.display = 'block';
       finalCard.style.display = 'block';
       // نمایش ویدیوی رقص گربه
       catVideo.style.display = 'block';
@@ -365,7 +368,7 @@
     // تابع برای پرتاب پوپرها از 4 گوشه به سمت وسط (5 پوپر از هر گوشه)
     function animatePoppers() {
       const corners = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'];
-      const numPerCorner = 5;
+      const numPerCorner = 0;
       const popperWidth = 500, popperHeight = 500;
       const finalLeft = window.innerWidth / 2 - popperWidth / 2;
       const finalTop = window.innerHeight / 2 - popperHeight / 2;
